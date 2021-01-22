@@ -15,52 +15,47 @@ if exists("b:current_syntax")
   finish
 endif
 
-"syn match ungramName /\<[A-Za-z][a-zA-Z_0-9]\+\>/ contained
-"syn match ungramLabel /\<[a-z_0-9]\+\>/ contained
+" Top-Level Node
+syn match ungramNode /^\<[A-Z][a-zA-Z_0-9]\+\>*/ nextgroup=ungramNodeSeperator skipwhite
+syn match ungramNodeSeperator /=/ contained nextgroup=ungramNodeName skipempty skipwhite
 
-" Node definition 
-syn match ungramNode /^\<[A-Za-z][a-zA-Z_0-9]\+\>/
+" Rules
+syn region ungramRuleLine           start=/^\s\s/ end=/\(^[^ "^#~=*-]\)\@=/ contains=@ungramRules nextgroup=ungramRuleLineAfterFirst
+syn region ungramRuleLineAfterFirst start=/^\|\s/ end=/\(^[^ "^#~=*-]\)\@=/ contains=@ungramRules nextgroup=ungramRuleLineAfterFirst,ungramNode,ungramLabeledRule
+syn cluster ungramRules contains=ungramNodeName,ungramLabeledRule,ungramLabelSeperator,ungramComment,ungramLiteral,ungramRepetitionSeperator
 
-" Rule definition
-syn match ungramRule /.\<[A-Z][a-zA-Z_0-9]\+\>/
-"skipwhite skipempty nextgroup=ungramEndRule
-syn match ungramRuleAndLabel /:\<[A-Z][a-zA-Z_0-9]\+\>/
-"skipwhite skipempty nextgroup=ungramEndRule
-"syn match ungramEndRule /[\.\n]/ 
+" Labeled rule
+syn match ungramNodeName       /\<[A-Z][a-zA-Z_0-9]\+\>*/ contained nextgroup=@ungramRules skipwhite
+syn match ungramLabeledRule    /\<[a-z][a-z_0-9]\+\>/     contained nextgroup=@ungramRules skipwhite
+syn match ungramLabelSeperator /:/            transparent contained nextgroup=@ungramRules skipwhite
 
-" Rule label
-syn match ungramLabel /\<[a-z][a-zA-z_0-9]\+\>/ nextgroup=ungramLabelSeperator
+" Node name as rule
+syn match ungramRepetitionSeperator /[?\*]/ contained skipwhite skipempty nextgroup=@ungramRules
+syn match ungramComment /\/\/.*/ skipempty 
 
-" Node,Rule seperator
-"syn match ungramSeperator /=/ contained nextgroup=ungramRuleLabel,ungramRule skipwhite skipempty
-syn match ungramLabelSeperator /:/ nextgroup=ungramRuleAndLabel
+" Special deliminaters
+syn match ungramSpecial /[\-|:=!]/ contained
+syn region ungramSpecialSequence   contained matchgroup=ungramSpecial nextgroup=@ungramRules start=/?/ end=/?/ 
 
-" Misc
-syn match ungramSpecial /[\-\*:]/ contained
-syn region ungramSpecialSequence matchgroup=Delimiter start=/?/ end=/?/ contained
-
-syn match ungramCharacter '\\\(r\|n\|t\|f\|b\|"\|\'\|\\\|u\x\{4}\)' contained display
-syn region ungramLiteral start=+'+ end=+'+ contains=ungramCharacter
-
-" Terminal tokens
-syn region ungramTerminal matchgroup=Delimiter start=/"/ end=/"/ contained
-syn region ungramTerminal matchgroup=Delimiter start=/'/ end=/'/ contained
-syn match  ungramComment /\/\/.*$/
-
-
-hi def link ungramNode            Special 
-hi def link ungramRule            Type
-hi def link ungramRuleAndLabel    Type
-
-hi def link ungramLabel           String
-hi def link ungramLabelSeperator  ungramSpecial
-
-hi def link ungramEndRule         ungramDelimiter
-hi def link ungramSpecial         Special
-hi def link ungramSpecialSequence Statement
-
-hi def link ungramDelimiter       Delimiter
-hi def link ungramTerminal        Constant
-hi def link ungramComment         Comment
+" Literals (e.g., 'ident')
+syn match ungramChar /[a-z].*/ contained 
+syn region ungramLiteral start=/'/ end=/'/ matchgroup=ungramChar nextgroup=@ungramRules skipwhite
+syn region ungramLiteral start=/(/ end=/)/ contains=@ungramRules skipwhite
 
 let b:current_syntax = "ungram"
+
+" Color of entire rules block
+hi def link ungramNode                 Statement
+hi def link ungramNodeName             Conditional
+hi def link ungramLabeledRule          Comment
+
+" Color of deliminaters and 
+hi def link ungramLiteral              Label 
+hi def link ungramComment              Comment
+"hi def link ungramSpecial              Special
+"hi def link ungramSpecialSequence      Special
+
+
+hi def link ungramNodeSeperator        Special
+hi def link ungramLabelSeperator       Special
+hi def link ungramRepetitionSeperator  Special
