@@ -52,9 +52,6 @@ hi def link ungramLabeledRule          Comment
 " Color of deliminaters and 
 hi def link ungramLiteral              Label 
 hi def link ungramComment              Comment
-"hi def link ungramSpecial              Special
-"hi def link ungramSpecialSequence      Special
-
 
 hi def link ungramNodeSeperator        Special
 hi def link ungramLabelSeperator       Special
