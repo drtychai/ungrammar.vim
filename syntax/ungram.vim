@@ -1,58 +1,61 @@
-" vim: ts=8
-" Vim syntax file 
-" \Language:     Ungrammar
-"   //          -- comment
-"   Name =      -- non-terminal definition
-"   'ident'     -- token (terminal)
-"   A B         -- sequence
-"   A | B       -- alternation
-"   A*          -- zero or more repetition
-"   A?          -- zero or one repetition
-"   (A)         -- same as A
-"   label:A     -- suggested name for field of AST node
-
+" syntax/ungram.vim
+" Language: Ungrammar
+" =======================================================
+" =======================================================
+"    Grammar =
+"      Node*
+"    
+"    Node =
+"      name:'ident' '=' Rule
+"    
+"    Rule =
+"      'ident'                // Alphabetic identifier
+"    | 'token_ident'          // Single quoted string
+"    | Rule*                  // Concatenation
+"    | Rule ('|' Rule)*       // Alternation
+"    | Rule '?'               // Zero or one repetition
+"    | Rule '*'               // Kleene star
+"    | '(' Rule ')'           // Grouping
+"    | label:'ident' ':' Rule // Labeled rule
+" =======================================================
+" =======================================================
 if exists("b:current_syntax")
   finish
 endif
 
-" Top-Level Node
-syn match ungramNode /^\<[A-Z][a-zA-Z_0-9]\+\>*/ nextgroup=ungramNodeSeperator skipwhite
-syn match ungramNodeSeperator /=/ contained nextgroup=ungramNodeName skipempty skipwhite
+" Comments use // leader
+syntax match ungramComment /\v\/\/.*$/
 
-" Rules
-syn region ungramRuleLine           start=/^\s\s/ end=/\(^[^ "^#~=*-]\)\@=/ contains=@ungramRules nextgroup=ungramRuleLineAfterFirst
-syn region ungramRuleLineAfterFirst start=/^\|\s/ end=/\(^[^ "^#~=*-]\)\@=/ contains=@ungramRules nextgroup=ungramRuleLineAfterFirst,ungramNode,ungramLabeledRule
-syn cluster ungramRules contains=ungramNodeName,ungramLabeledRule,ungramLabelSeperator,ungramComment,ungramLiteral,ungramRepetitionSeperator
+" Docs use /// leader
+syntax match ungramDocComment /\v\/\/\/.*$/
 
-" Labeled rule
-syn match ungramNodeName       /\<[A-Z][a-zA-Z_0-9]\+\>*/ contained nextgroup=@ungramRules skipwhite
-syn match ungramLabeledRule    /\<[a-z][a-z_0-9]\+\>/     contained nextgroup=@ungramRules skipwhite
-syn match ungramLabelSeperator /:/            transparent contained nextgroup=@ungramRules skipwhite
+" Operators [ : = ]
+syntax match ungramOperator /\v\=/ 
+syntax match ungramOperator /\v\:/
 
-" Node name as rule
-syn match ungramRepetitionSeperator /[?\*]/ contained skipwhite skipempty nextgroup=@ungramRules
-syn match ungramComment /\/\/.*/ skipempty 
+" Conditional [ ? | * ] 
+syntax match ungramConditional /\v\|/
+syntax match ungramConditional /\v\?/
+syntax match ungramConditional /\v\*/
 
-" Special deliminaters
-syn match ungramSpecial /[\-|:=!]/ contained
-syn region ungramSpecialSequence   contained matchgroup=ungramSpecial nextgroup=@ungramRules start=/?/ end=/?/ 
+" String literals
+syntax region ungramString start=/\v'/ skip=/\v\\./ end=/\v'/
 
-" Literals (e.g., 'ident')
-syn match ungramChar /[a-z].*/ contained 
-syn region ungramLiteral start=/'/ end=/'/ matchgroup=ungramChar nextgroup=@ungramRules skipwhite
-syn region ungramLiteral start=/(/ end=/)/ contains=@ungramRules skipwhite
+" Node - matches all PascalCase
+syntax match ungramNodeIdentifier /\('\)\@<![A-Z][_A-Za-z0-9]\+\('\)\@!/
+
+" Node - only matches PascalCase declarations (beginning of line)
+syntax match ungramNode /^\('\)\@<![A-Z][_A-Za-z0-9]\+\('\)\@!/
+
+" Label associated with a given Node ( label:Node )
+syntax match ungramLabel /\('\)\@<![a-z][_A-Za-z0-9]\+\('\)\@!/
 
 let b:current_syntax = "ungram"
-
-" Color of entire rules block
-hi def link ungramNode                 Statement
-hi def link ungramNodeName             Conditional
-hi def link ungramLabeledRule          Comment
-
-" Color of deliminaters and 
-hi def link ungramLiteral              Label 
-hi def link ungramComment              Comment
-
-hi def link ungramNodeSeperator        Special
-hi def link ungramLabelSeperator       Special
-hi def link ungramRepetitionSeperator  Special
+highlight link ungramComment        Comment
+highlight link ungramDocComment     Special
+highlight link ungramOperator       Operator
+highlight link ungramConditional    Special
+highlight link ungramString         String
+highlight link ungramNodeIdentifier Type 
+highlight link ungramNode           Identifier
+highlight link ungramLabel          Special
